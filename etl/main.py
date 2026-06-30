@@ -46,6 +46,16 @@ def main():
 
     servicios = transformar_servicios(data["atenciones"])
 
+    fila_servicio_desconocido = pd.DataFrame([{
+        "CodigoServicio": "DESCONOCIDO",
+        "NombreServicio": "Servicio Desconocido"
+    }])
+
+    servicios = pd.concat(
+        [fila_servicio_desconocido, servicios],
+        ignore_index=True
+    )
+
     seguros = transformar_seguro(pacientes)
 
     tiempo = crear_dim_tiempo()

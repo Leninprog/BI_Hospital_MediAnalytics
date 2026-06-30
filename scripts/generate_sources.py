@@ -241,9 +241,11 @@ print("Atenciones.xlsx generado")
 
 print("Generando facturación...")
 
+# Cada atención genera exactamente UNA factura asociada (1 a 1).
+# Esto asegura que el merge en el ETL sea correcto y no duplique filas.
 facturas = []
 
-for i in range(1, 10001):
+for idx, atencion in enumerate(atenciones, start=1):
 
     seguro = choice([
         "Publico",
@@ -275,15 +277,16 @@ for i in range(1, 10001):
         )
 
     fecha_factura = fake.date_time_between(
-        start_date="-18M",
+        start_date=atencion["FechaAtencion"],
         end_date="now"
     )
 
     facturas.append({
-        "NumFactura": f"FAC{i:06}",
-        "IdPaciente": choice(ids_pacientes),
+        "NumFactura": f"FAC{idx:06}",
+        "IdAtencion": atencion["IdAtencion"],
+        "IdPaciente": atencion["IdPaciente"],
         "FechaFactura": fecha_factura,
-        "CodigoServicio": choice(list(servicios.keys())),
+        "CodigoServicio": atencion["CodigoServicio"],
         "MontoTotal": monto_total,
         "MontoCubierto": monto_cubierto,
         "TipoSeguro": seguro,

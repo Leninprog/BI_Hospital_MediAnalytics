@@ -117,9 +117,12 @@ def probar_dimensiones():
 def normalizar_servicio(valor):
 
     if pd.isna(valor):
-        return None
+        return "DESCONOCIDO"
 
     valor = str(valor).strip()
+
+    if valor == "":
+        return "DESCONOCIDO"
 
     mapa = {
 
@@ -136,7 +139,7 @@ def normalizar_servicio(valor):
 
     }
 
-    return mapa.get(valor, valor)
+    return mapa.get(valor, "DESCONOCIDO")
 
 
 # ==========================================================
@@ -187,17 +190,13 @@ def construir_fact_atencion(data):
 
         fac,
 
-        left_on=[
-            "IdPaciente",
-            "CodigoServicio"
-        ],
+        left_on="IdAtencion",
 
-        right_on=[
-            "IdPaciente",
-            "CodigoServicio"
-        ],
+        right_on="IdAtencion",
 
-        how="left"
+        how="left",
+
+        suffixes=("", "_fac")
 
     )
 
@@ -263,9 +262,22 @@ def construir_fact_atencion(data):
 
     )
     
+    # Buscar el DiagnosticoKey real asignado a la fila "DESCONOCIDO"
+    desconocido = dims["diagnostico"][
+        dims["diagnostico"]["CodigoCIE10"] == "DESCONOCIDO"
+    ]
+
+    if desconocido.empty:
+        raise ValueError(
+            "No existe la fila 'DESCONOCIDO' en DIM_DIAGNOSTICO. "
+            "Verifica que main.py la haya insertado antes de correr el ETL."
+        )
+
+    key_desconocido = int(desconocido["DiagnosticoKey"].iloc[0])
+
     fact["DiagnosticoKey"] = (
         fact["DiagnosticoKey"]
-        .fillna(-1)
+        .fillna(key_desconocido)
         .astype(int)
     )
     
@@ -365,11 +377,13 @@ def construir_fact_atencion(data):
 
             "MontoTotal",
 
+            "MontoCubierto",
+
             "CostoOperativo",
 
             "Readmitido30Dias",
 
-            "FechaModificacion_x"
+            "FechaModificacion"
 
         ]
 
@@ -379,9 +393,7 @@ def construir_fact_atencion(data):
 
         columns={
 
-            "MontoTotal": "MontoFacturado",
-
-            "FechaModificacion_x": "FechaModificacion"
+            "MontoTotal": "MontoFacturado"
 
         }
 
@@ -501,8 +513,6 @@ def construir_fact_ocupacion(data):
         "ServicioKey",
 
         "CamaKey",
-
-        "Estado",
 
         "Ocupada",
 

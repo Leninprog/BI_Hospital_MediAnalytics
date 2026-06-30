@@ -165,8 +165,8 @@ def transformar_seguro(df):
 def crear_dim_tiempo():
 
     fechas = pd.date_range(
-        start="2025-01-01",
-        end="2026-12-31",
+        start="2024-01-01",
+        end="2027-12-31",
         freq="D"
     )
 
